@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f7faf9" />
+  <title>活動管理後台｜高雄運動</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-body">
+  <header class="site-header admin-header">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">動</span>
+      <span><strong>活動管理後台</strong><small>高雄運動</small></span>
+    </a>
+    <div class="header-actions">
+      <a class="ghost-btn" href="index.html">查看前台</a>
+      <button id="logoutBtn" class="ghost-btn hidden" type="button">登出</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <section id="setupWarning" class="setup-warning hidden">
+      <strong>尚未連接 Supabase</strong>
+      <p>請先依 README 設定 <code>config.js</code>，再進行登入。</p>
+    </section>
+
+    <section id="loginPanel" class="login-card surface">
+      <div class="login-copy">
+        <span class="eyebrow">EDITOR LOGIN</span>
+        <h1>小編登入</h1>
+        <p>僅限已核准的公務／工作信箱。登入後，系統會依你的身分自動限制可編輯的科室。</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>電子信箱</span>
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="name@example.gov.tw" />
+        </label>
+        <label>
+          <span>密碼</span>
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="請輸入密碼" />
+        </label>
+        <button class="primary-btn full" type="submit">登入後台</button>
+        <button class="text-btn" id="forgotPasswordBtn" type="button">忘記密碼</button>
+        <p id="loginMessage" class="form-message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="dashboard" class="dashboard hidden">
+      <aside class="admin-sidebar surface">
+        <div class="profile-block">
+          <div class="avatar" id="profileAvatar">小</div>
+          <div>
+            <strong id="profileName">小編</strong>
+            <span id="profileDept">—</span>
+          </div>
+        </div>
+        <div class="role-badge" id="roleBadge">科室小編</div>
+        <nav class="admin-nav">
+          <button class="active" type="button" data-admin-view="activities">活動管理</button>
+          <button type="button" data-admin-view="audit">異動紀錄</button>
+        </nav>
+        <div class="sidebar-note">
+          <strong>權限提醒</strong>
+          <p id="permissionHint">你只能編輯自己科室的活動。</p>
+        </div>
+      </aside>
+
+      <section class="admin-content">
+        <div id="activitiesView">
+          <div class="admin-title-row">
+            <div>
+              <span class="eyebrow">ACTIVITY MANAGER</span>
+              <h1>活動管理</h1>
+              <p>新增、編輯、上下架活動；前台只會顯示「已發布」的活動。</p>
+            </div>
+            <button id="newActivityBtn" class="primary-btn" type="button">＋ 新增活動</button>
+          </div>
+
+          <div class="admin-filters surface">
+            <input id="adminSearchInput" type="search" placeholder="搜尋活動名稱…" />
+            <select id="adminDepartmentFilter"><option value="">所有可管理科室</option></select>
+            <select id="adminStatusFilter">
+              <option value="">全部狀態</option>
+              <option value="published">已發布</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><span>可管理活動</span><strong id="statTotal">0</strong></article>
+            <article class="stat-card"><span>已發布</span><strong id="statPublished">0</strong></article>
+            <article class="stat-card"><span>草稿</span><strong id="statDraft">0</strong></article>
+            <article class="stat-card"><span>本月活動</span><strong id="statMonth">0</strong></article>
+          </div>
+
+          <div id="adminActivityList" class="admin-activity-list"></div>
+          <div id="adminEmpty" class="empty-state hidden"><h3>目前沒有活動</h3><p>按「新增活動」建立第一筆資料。</p></div>
+        </div>
+
+        <div id="auditView" class="hidden">
+          <div class="admin-title-row">
+            <div>
+              <span class="eyebrow">AUDIT LOG</span>
+              <h1>異動紀錄</h1>
+              <p>查看活動新增、修改與刪除紀錄，方便多人共同管理時追蹤。</p>
+            </div>
+          </div>
+          <div id="auditList" class="audit-list"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="activityDialog" class="activity-dialog">
+    <form id="activityForm" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="eyebrow">EVENT EDITOR</span>
+          <h2 id="dialogTitle">新增活動</h2>
+        </div>
+        <button id="closeDialogBtn" class="icon-btn" type="button" aria-label="關閉">×</button>
+      </div>
+
+      <input type="hidden" id="activityId" />
+      <div class="form-grid">
+        <label class="span-2"><span>活動名稱 *</span><input id="activityTitle" required maxlength="100" /></label>
+        <label><span>主辦／維護科室 *</span><select id="activityDepartment" required></select></label>
+        <label><span>活動類型 *</span>
+          <select id="activityCategory" required>
+            <option value="課程">課程</option><option value="賽事">賽事</option><option value="體驗">體驗</option><option value="宣導">宣導</option><option value="其他">其他</option>
+          </select>
+        </label>
+        <label><span>開始日期 *</span><input id="activityStartDate" type="date" required /></label>
+        <label><span>結束日期</span><input id="activityEndDate" type="date" /></label>
+        <label class="span-2"><span>地點</span><input id="activityLocation" maxlength="120" placeholder="例：苓雅運動園區田徑場" /></label>
+        <label class="span-2"><span>活動摘要 *</span><textarea id="activitySummary" required maxlength="300" rows="4" placeholder="用 1–3 句話說明活動重點"></textarea><small><span id="summaryCount">0</span>/300</small></label>
+        <label><span>報名網址</span><input id="registrationUrl" type="url" placeholder="https://…" /></label>
+        <label><span>詳細資訊網址</span><input id="infoUrl" type="url" placeholder="https://…" /></label>
+        <label class="span-2"><span>活動圖片</span><input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" /><small>建議 1600×900，JPG / PNG / WebP，10MB 以下。</small></label>
+        <label class="span-2"><span>或直接填圖片網址</span><input id="imageUrl" type="url" placeholder="https://…" /></label>
+        <label class="checkbox-label"><input id="featuredToggle" type="checkbox" /><span>設為本月焦點</span></label>
+        <label class="checkbox-label"><input id="publishedToggle" type="checkbox" /><span>立即發布到前台</span></label>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="deleteActivityBtn" class="danger-btn hidden" type="button">刪除活動</button>
+        <span class="spacer"></span>
+        <button id="cancelDialogBtn" class="ghost-btn" type="button">取消</button>
+        <button class="primary-btn" type="submit">儲存活動</button>
+      </div>
+      <p id="activityFormMessage" class="form-message"></p>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

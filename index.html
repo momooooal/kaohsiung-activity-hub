@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f7faf9" />
+  <title>高雄運動｜每月活動總入口</title>
+  <meta name="description" content="高雄運動每月活動總入口：課程、賽事、活動與報名資訊一次看。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="回首頁">
+      <span class="brand-mark">動</span>
+      <span>
+        <strong>高雄運動</strong>
+        <small>每月活動總入口</small>
+      </span>
+    </a>
+    <nav class="header-actions">
+      <button class="ghost-btn" id="sharePageBtn" type="button">分享這一頁</button>
+      <a class="ghost-btn admin-link" href="admin.html">小編登入</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">KAOHSIUNG SPORTS</span>
+        <h1>這個月，有什麼好玩的？</h1>
+        <p>課程、賽事、體驗活動、報名資訊都整理在這裡。選月份、找關鍵字，快速找到你想參加的活動。</p>
+      </div>
+      <div class="hero-orbs" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <section class="toolbar surface" aria-label="活動搜尋與篩選">
+      <div class="month-control">
+        <button class="icon-btn" id="prevMonthBtn" type="button" aria-label="上一個月">←</button>
+        <button class="month-label" id="monthPickerBtn" type="button">
+          <span id="monthLabel">2026 年 8 月</span>
+          <small>點一下回到本月</small>
+        </button>
+        <button class="icon-btn" id="nextMonthBtn" type="button" aria-label="下一個月">→</button>
+      </div>
+
+      <label class="search-box">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="搜尋活動、地點、關鍵字…" autocomplete="off" />
+        <kbd>/</kbd>
+      </label>
+
+      <div class="filter-row">
+        <select id="departmentFilter" aria-label="依科室篩選">
+          <option value="">所有科室</option>
+        </select>
+        <select id="categoryFilter" aria-label="依活動類型篩選">
+          <option value="">所有類型</option>
+          <option value="課程">課程</option>
+          <option value="賽事">賽事</option>
+          <option value="體驗">體驗</option>
+          <option value="宣導">宣導</option>
+          <option value="其他">其他</option>
+        </select>
+        <button id="clearFiltersBtn" class="text-btn" type="button">清除篩選</button>
+      </div>
+    </section>
+
+    <section class="summary-strip" aria-live="polite">
+      <div>
+        <strong id="resultCount">0</strong>
+        <span>個活動</span>
+      </div>
+      <p id="resultHint">正在整理本月活動…</p>
+    </section>
+
+    <section id="featuredSection" class="featured-section hidden">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">FEATURED</span>
+          <h2>本月焦點</h2>
+        </div>
+      </div>
+      <div id="featuredGrid" class="featured-grid"></div>
+    </section>
+
+    <section class="activity-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">ALL EVENTS</span>
+          <h2>活動一覽</h2>
+        </div>
+        <div class="view-toggle" role="group" aria-label="切換活動顯示方式">
+          <button class="active" data-view="grid" type="button">卡片</button>
+          <button data-view="list" type="button">清單</button>
+        </div>
+      </div>
+
+      <div id="activityGrid" class="activity-grid"></div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">◎</div>
+        <h3>目前沒有符合條件的活動</h3>
+        <p>換個月份或關鍵字看看，新的活動會陸續更新。</p>
+        <button id="resetEmptyBtn" class="primary-btn" type="button">查看本月全部活動</button>
+      </div>
+    </section>
+
+    <section class="notice surface">
+      <div>
+        <span class="eyebrow">NOTICE</span>
+        <h2>找不到活動嗎？</h2>
+        <p>活動資訊由各科室小編維護；報名截止、名額與異動資訊，以活動主辦單位最新公告為準。</p>
+      </div>
+      <button id="copyPageBtn" class="primary-btn" type="button">複製活動入口網址</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>高雄運動活動總入口｜資訊持續更新</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
