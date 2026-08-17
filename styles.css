@@ -192,8 +192,8 @@ button { color: inherit; }
 }
 .activity-card:hover { transform: translateY(-3px); box-shadow: 0 18px 42px rgba(44, 75, 122, .10); border-color: #cbd9e9; }
 .card-image { aspect-ratio: 1.65 / 1; background: linear-gradient(135deg, #dceaff, #f4f8ff 55%, #ffead9); background-size: cover; background-position: center; position: relative; }
-.card-date-badge { position: absolute; top: 14px; left: 14px; min-width: 54px; padding: 7px 9px; border-radius: 13px; text-align: center; background: rgba(255,255,255,.92); box-shadow: 0 7px 22px rgba(43,67,108,.12); }
-.card-date-badge strong { display: block; font-size: 17px; }
+.card-date-badge { position: absolute; top: 14px; left: 14px; min-width: 64px; padding: 7px 9px; border-radius: 13px; text-align: center; background: rgba(255,255,255,.92); box-shadow: 0 7px 22px rgba(43,67,108,.12); }
+.card-date-badge strong { display: block; font-size: 15px; }
 .card-date-badge small { color: var(--muted); font-size: 10px; }
 .card-body { padding: 18px; }
 .card-kicker { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; margin-bottom: 9px; }

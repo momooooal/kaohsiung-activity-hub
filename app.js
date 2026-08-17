@@ -211,7 +211,7 @@
       location: pick('location', '地點'), summary: pick('summary', '摘要'), details: pick('details', '詳細說明'),
       registrationUrl: cleanUrl(pick('registration_url', '報名網址')), infoUrl: cleanUrl(pick('info_url', '詳細網址')),
       imageUrl: normalizeImageUrl(pick('image_url', '圖片網址')), featured: truthy(pick('featured', '焦點')), status: pick('status', '狀態'),
-      sortOrder: Number(pick('sort_order', '排序')) || 0, sportCategory: pick('sport_category', '運動類別'), contactPhone: pick('contact_phone', '聯絡電話')
+      sortOrder: Number(pick('sort_order', '排序')) || 0, sportCategory: pick('sport_category', '運動類別'), contactPhone: pick('contact_phone', '聯絡電話'), imagePosition: normalizeImagePosition(pick('image_position', '圖片焦點'))
     };
     activity.sportCategory = inferSport(activity);
     return activity;
@@ -303,13 +303,13 @@
 
   function cardVisualHtml(activity, day, month) {
     const meta = sportMeta(activity.sportCategory);
-    if (activity.imageUrl) return `<div class="card-image has-photo sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}')"><div class="card-date-badge"><strong>${escapeHtml(String(day))}</strong><small>${escapeHtml(month)}</small></div><span class="visual-sport-tag">${meta.icon} ${escapeHtml(activity.sportCategory)}</span></div>`;
-    return `<div class="card-image fallback-visual sport-${meta.key}"><div class="fallback-pattern"></div><div class="fallback-sport"><span>${meta.icon}</span><strong>${escapeHtml(activity.sportCategory)}</strong><small>${escapeHtml(activity.type || '運動活動')}</small></div><div class="card-date-badge"><strong>${escapeHtml(String(day))}</strong><small>${escapeHtml(month)}</small></div></div>`;
+    if (activity.imageUrl) return `<div class="card-image has-photo sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}');background-position:${escapeAttr(activity.imagePosition)}">${dateBadgeHtml(activity)}<span class="visual-sport-tag">${meta.icon} ${escapeHtml(activity.sportCategory)}</span></div>`;
+    return `<div class="card-image fallback-visual sport-${meta.key}"><div class="fallback-pattern"></div><div class="fallback-sport"><span>${meta.icon}</span><strong>${escapeHtml(activity.sportCategory)}</strong><small>${escapeHtml(activity.type || '運動活動')}</small></div>${dateBadgeHtml(activity)}</div>`;
   }
 
   function featureVisualHtml(activity) {
     const meta = sportMeta(activity.sportCategory);
-    if (activity.imageUrl) return `<div class="feature-image sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}')"></div>`;
+    if (activity.imageUrl) return `<div class="feature-image sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}');background-position:${escapeAttr(activity.imagePosition)}"></div>`;
     return `<div class="feature-fallback sport-${meta.key}"><div class="feature-fallback-icon">${meta.icon}</div><div class="feature-fallback-label">${escapeHtml(activity.sportCategory)}</div></div>`;
   }
 
@@ -350,7 +350,7 @@
 
   function openDetails(id) {
     const activity = state.activities.find((item) => item.id === id); if (!activity) return;
-    const meta = sportMeta(activity.sportCategory); const cover = activity.imageUrl ? `<div class="detail-cover sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}')"></div>` : `<div class="detail-cover detail-fallback sport-${meta.key}"><span>${meta.icon}</span><strong>${escapeHtml(activity.sportCategory)}</strong></div>`;
+    const meta = sportMeta(activity.sportCategory); const cover = activity.imageUrl ? `<div class="detail-cover sport-${meta.key}" style="background-image:url('${escapeAttr(activity.imageUrl)}');background-position:${escapeAttr(activity.imagePosition)}"></div>` : `<div class="detail-cover detail-fallback sport-${meta.key}"><span>${meta.icon}</span><strong>${escapeHtml(activity.sportCategory)}</strong></div>`;
     const registration = activity.registrationUrl ? `<a class="button button-primary" href="${escapeAttr(activity.registrationUrl)}" target="_blank" rel="noopener">前往報名</a>` : '';
     const info = activity.infoUrl ? `<a class="button button-soft" href="${escapeAttr(activity.infoUrl)}" target="_blank" rel="noopener">官方詳細資訊</a>` : '';
     const phone = activity.contactPhone ? `<a class="button button-soft" href="tel:${escapeAttr(phoneForTel(activity.contactPhone))}">☎ 撥打 ${escapeHtml(activity.contactPhone)}</a>` : '';
@@ -396,11 +396,23 @@
   function formatShortDate(value) { const date = parseLocalDate(value); return date ? `${date.getMonth() + 1}/${date.getDate()}` : '日期'; }
   function formatTimeRange(activity) { if (!activity.startTime && !activity.endTime) return ''; if (activity.startTime && activity.endTime) return `${activity.startTime}－${activity.endTime}`; return activity.startTime || activity.endTime; }
 
+
+  function normalizeImagePosition(value) {
+    const text = String(value || '').trim();
+    return /^(0|50|100)%\s+(0|50|100)%$/.test(text) ? text : '50% 50%';
+  }
+  function dateBadgeHtml(activity) {
+    const date = parseLocalDate(activity.startDate); if (!date) return '';
+    return `<div class="card-date-badge"><strong>${date.getMonth() + 1}/${date.getDate()}</strong><small>週${'日一二三四五六'[date.getDay()]}</small></div>`;
+  }
+
   function normalizeImageUrl(value) { const url = cleanUrl(value); if (!url) return ''; const driveMatch = url.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{20,})/); return driveMatch ? `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w1600` : url; }
   function cleanUrl(value) { const url = String(value || '').trim(); if (!url) return ''; if (/^https?:\/\//i.test(url)) return url; if (/^www\./i.test(url)) return `https://${url}`; return url; }
 
   function normalizeDate(value) {
     let text = String(value || '').trim(); if (!text) return '';
+    let g = text.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})(?:,.*)?\)$/);
+    if (g) return `${g[1]}-${String(Number(g[2]) + 1).padStart(2, '0')}-${String(g[3]).padStart(2, '0')}`;
     text = text.replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '/').replace(/\s+.*/, '');
     const match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/) || text.match(/^(\d{4})(\d{2})(\d{2})$/);
     if (match) return `${match[1]}-${String(match[2]).padStart(2, '0')}-${String(match[3]).padStart(2, '0')}`;
@@ -409,10 +421,15 @@
 
   function normalizeTime(value) {
     let text = String(value || '').trim(); if (!text) return '';
+    if (/^\d*\.\d+$/.test(text)) {
+      const n = Number(text); if (Number.isFinite(n)) { const mins = Math.round((((n % 1) + 1) % 1) * 1440) % 1440; return `${String(Math.floor(mins / 60)).padStart(2,'0')}:${String(mins % 60).padStart(2,'0')}`; }
+    }
+    let g = text.match(/^Date\(\d{4},\d{1,2},\d{1,2},(\d{1,2}),(\d{1,2})(?:,\d+)?\)$/);
+    if (g) return `${String(g[1]).padStart(2,'0')}:${String(g[2]).padStart(2,'0')}`;
     let m = text.match(/^(上午|下午)\s*(\d{1,2}):(\d{2})(?::\d{2})?$/); if (m) { let h = Number(m[2]); if (m[1] === '下午' && h < 12) h += 12; if (m[1] === '上午' && h === 12) h = 0; return `${String(h).padStart(2, '0')}:${m[3]}`; }
     m = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i); if (m) { let h = Number(m[1]); const ap = m[3].toUpperCase(); if (ap === 'PM' && h < 12) h += 12; if (ap === 'AM' && h === 12) h = 0; return `${String(h).padStart(2, '0')}:${m[2]}`; }
     m = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/); if (m) return `${String(Number(m[1])).padStart(2, '0')}:${m[2]}`;
-    return text;
+    return '';
   }
 
   function parseLocalDate(value) { const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!match) return null; const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])); return Number.isNaN(date.getTime()) ? null : date; }
