@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7fbff" />
-  <meta name="description" content="高雄運動每月活動總入口：快速搜尋課程、賽事、體驗與報名資訊。" />
+  <meta name="description" content="高雄運動每月活動總入口：快速找最新活動、依運動類別篩選課程、賽事、體驗與報名資訊。" />
   <title>高雄運動｜每月活動總入口</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -16,13 +16,10 @@
     <header class="site-header">
       <a class="brand" href="./" aria-label="回到活動總入口首頁">
         <span class="brand-mark" aria-hidden="true">動</span>
-        <span>
-          <strong>高雄運動</strong>
-          <small>每月活動總入口</small>
-        </span>
+        <span><strong>高雄運動</strong><small>每月活動總入口</small></span>
       </a>
       <div class="header-actions">
-        <button id="copyHubBtn" class="button button-ghost" type="button">複製入口網址</button>
+        <button id="copyHubBtn" class="button button-ghost" type="button">分享本月入口</button>
         <a id="adminLink" class="button button-dark" href="admin.html">小編後台</a>
       </div>
     </header>
@@ -31,108 +28,91 @@
       <section class="hero" aria-labelledby="heroTitle">
         <div class="hero-copy">
           <span class="eyebrow">KAOHSIUNG SPORTS · MONTHLY GUIDE</span>
-          <h1 id="heroTitle">這個月，<br><span>一起動起來。</span></h1>
-          <p>課程、賽事、體驗、講座與報名資訊集中在同一頁。選月份、挑類型，找到你想參加的活動。</p>
+          <h1 id="heroTitle">這個月，<br><span>想動哪一種？</span></h1>
+          <p>不用翻很多篇貼文。選月份、挑運動類別，課程、賽事、體驗與報名資訊一次找到。</p>
+          <div class="hero-actions">
+            <button id="heroBrowseBtn" class="button button-primary" type="button">找本月活動 ↓</button>
+            <button id="heroGameBtn" class="button button-ghost" type="button">🎲 玩本月活動大富翁</button>
+          </div>
           <div class="hero-meta">
             <div><strong id="heroMonth">—</strong><span>目前月份</span></div>
-            <div><strong id="heroCount">—</strong><span>可參加活動</span></div>
-            <div><strong id="heroUpdated">—</strong><span>資料更新</span></div>
+            <div><strong id="heroCount">—</strong><span>本月活動</span></div>
+            <div><strong id="heroUpdated">—</strong><span>今日查看</span></div>
           </div>
         </div>
         <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="sport-card sport-card-main">
-            <span>THIS MONTH</span>
-            <strong id="heroCardMonth">—</strong>
-            <small>活動一次看</small>
-          </div>
-          <div class="floating-chip chip-run">🏃 跑步</div>
-          <div class="floating-chip chip-water">🚣 水域</div>
-          <div class="floating-chip chip-class">🧘 課程</div>
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="sport-card sport-card-main"><span>THIS MONTH</span><strong id="heroCardMonth">—</strong><small>高雄一起動</small></div>
+          <div class="floating-chip chip-run">🏃 跑步健走</div>
+          <div class="floating-chip chip-water">🚣 水域運動</div>
+          <div class="floating-chip chip-ball">🏀 球類運動</div>
         </div>
+      </section>
+
+      <section id="statusNotice" class="notice is-hidden" role="status"></section>
+
+      <section id="latestSection" class="latest-section is-hidden" aria-labelledby="latestTitle">
+        <div class="section-heading section-heading-row">
+          <div><span class="eyebrow">COMING UP</span><h2 id="latestTitle">近期活動</h2></div>
+          <p>從今天起，最近要登場的活動。</p>
+        </div>
+        <div id="latestRail" class="latest-rail"></div>
+      </section>
+
+      <section id="browseSection" class="browse-panel" aria-label="找活動">
+        <div class="browse-head">
+          <div><span class="eyebrow">FIND YOUR SPORT</span><h2>先選你想動的類別</h2><p>不知道活動名稱也沒關係，從運動開始找最快。</p></div>
+          <button id="resetSportBtn" class="text-button is-hidden" type="button">清除運動類別</button>
+        </div>
+        <div id="sportFilters" class="sport-selector"></div>
       </section>
 
       <section class="toolbar" aria-label="活動篩選工具">
         <div class="month-nav">
           <button id="prevMonth" class="icon-button" type="button" aria-label="上個月">←</button>
-          <button id="monthPickerBtn" class="month-display" type="button" aria-label="選擇月份">
-            <span id="monthLabel">—</span>
-            <small>切換月份</small>
-          </button>
+          <button id="monthPickerBtn" class="month-display" type="button" aria-label="選擇月份"><span id="monthLabel">—</span><small>切換月份</small></button>
           <button id="nextMonth" class="icon-button" type="button" aria-label="下個月">→</button>
           <input id="monthPicker" type="month" class="visually-hidden" aria-label="選擇活動月份" />
         </div>
-
-        <label class="search-box">
-          <span aria-hidden="true">⌕</span>
-          <input id="searchInput" type="search" placeholder="搜尋活動、地點或關鍵字" autocomplete="off" />
-        </label>
-
+        <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="搜尋活動、運動、地點或關鍵字" autocomplete="off" /></label>
         <div class="view-switch" role="group" aria-label="顯示模式">
           <button id="gridViewBtn" class="view-button is-active" type="button" aria-pressed="true">卡片</button>
           <button id="listViewBtn" class="view-button" type="button" aria-pressed="false">清單</button>
         </div>
       </section>
 
-      <section class="filter-strip" aria-label="活動分類">
-        <div id="typeFilters" class="chip-group"></div>
-        <select id="departmentFilter" class="select-control" aria-label="依科室篩選">
-          <option value="">全部科室</option>
-        </select>
+      <section class="filter-strip" aria-label="進階活動分類">
+        <div class="filter-block"><span class="filter-label">活動形式</span><div id="typeFilters" class="chip-group"></div></div>
+        <label class="department-control"><span>主責科室</span><select id="departmentFilter" class="select-control" aria-label="依科室篩選"><option value="">全部科室</option></select></label>
       </section>
 
-      <section id="statusNotice" class="notice is-hidden" role="status"></section>
-
       <section id="featuredSection" class="featured-section is-hidden" aria-labelledby="featuredTitle">
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">MONTHLY PICKS</span>
-            <h2 id="featuredTitle">本月焦點</h2>
-          </div>
-          <p>近期最值得注意的活動與報名資訊。</p>
-        </div>
+        <div class="section-heading"><div><span class="eyebrow">MONTHLY PICKS</span><h2 id="featuredTitle">本月焦點</h2></div><p>小編精選、近期最值得注意的活動。</p></div>
         <div id="featuredGrid" class="featured-grid"></div>
       </section>
 
+      <section id="monopolySection" class="monopoly-section" aria-labelledby="monopolyTitle">
+        <div class="monopoly-head">
+          <div><span class="eyebrow">MONTHLY SPORTS BOARD</span><h2 id="monopolyTitle">🎲 本月活動大富翁</h2><p>每一格就是一個本月活動。擲骰看看今天的運動靈感會走到哪裡。</p></div>
+          <div class="dice-actions"><button id="rollDiceBtn" class="button button-dark" type="button">擲骰子 <strong id="diceFace">🎲</strong></button><button id="resetBoardBtn" class="button button-ghost" type="button">回到起點</button></div>
+        </div>
+        <div id="boardMessage" class="board-message">目前在起點，擲骰開始探索！</div>
+        <div id="monopolyBoard" class="monopoly-board" aria-live="polite"></div>
+      </section>
+
       <section class="activities-section" aria-labelledby="activitiesTitle">
-        <div class="section-heading section-heading-row">
-          <div>
-            <span class="eyebrow">ALL EVENTS</span>
-            <h2 id="activitiesTitle">活動列表</h2>
-          </div>
-          <div class="result-count"><strong id="resultCount">0</strong> 個結果</div>
-        </div>
+        <div class="section-heading section-heading-row"><div><span class="eyebrow">ALL EVENTS</span><h2 id="activitiesTitle">全部活動</h2></div><div class="result-count"><strong id="resultCount">0</strong> 個結果</div></div>
+        <div id="activeFilterSummary" class="active-filter-summary is-hidden"></div>
         <div id="activityGrid" class="activity-grid"></div>
-        <div id="emptyState" class="empty-state is-hidden">
-          <div class="empty-icon">◌</div>
-          <h3>這個條件目前沒有活動</h3>
-          <p>可以換個月份、分類或搜尋關鍵字看看。</p>
-          <button id="resetFiltersBtn" class="button button-dark" type="button">清除篩選</button>
-        </div>
+        <div id="emptyState" class="empty-state is-hidden"><div class="empty-icon">◌</div><h3>這個條件目前沒有活動</h3><p>換個月份、運動類別或搜尋關鍵字看看。</p><button id="resetFiltersBtn" class="button button-dark" type="button">清除全部篩選</button></div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div>
-        <strong>高雄運動｜每月活動總入口</strong>
-        <p>活動資訊以各主辦單位最新公告為準。</p>
-      </div>
-      <div class="footer-actions">
-        <button id="footerCopyBtn" class="text-button" type="button">複製本頁網址</button>
-        <a class="text-button" href="admin.html">小編登入</a>
-      </div>
-    </footer>
+    <footer class="site-footer"><div><strong>高雄運動｜每月活動總入口</strong><p>活動資訊以各主辦單位最新公告為準。</p></div><div class="footer-actions"><button id="footerCopyBtn" class="text-button" type="button">複製本月網址</button><a class="text-button" href="admin.html">小編登入</a></div></footer>
   </div>
 
-  <dialog id="detailDialog" class="detail-dialog">
-    <button id="closeDialogBtn" class="dialog-close" type="button" aria-label="關閉">×</button>
-    <div id="detailContent"></div>
-  </dialog>
-
+  <dialog id="detailDialog" class="detail-dialog"><button id="closeDialogBtn" class="dialog-close" type="button" aria-label="關閉">×</button><div id="detailContent"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js"></script><script src="app.js"></script>
 </body>
 </html>
