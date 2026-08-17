@@ -4,6 +4,7 @@
  */
 window.ACTIVITY_HUB_CONFIG = {
   // Google Sheets「發布到網路」後取得的 CSV 網址。
+  // V3 會先用 CSV 讀取；若瀏覽器跨網域讀取失敗，會自動嘗試 Google Visualization 備援。
   // 未填時會自動顯示內建示範資料，方便先看網站效果。
   PUBLISHED_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSimGtS27kvMS_7Qof8yAI26nJLaHrYKIChLemHU31hXHTXGqs6icerakQNOdwOOKMrXUwmyhQkroDk/pub?gid=819632519&single=true&output=csv',
 

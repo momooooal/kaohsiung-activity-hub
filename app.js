@@ -81,17 +81,117 @@
       showNotice('目前使用內建示範資料。完成 Google Sheets「發布到網路」後，把 CSV 網址貼到 config.js 就會切換成正式資料。');
       return;
     }
+
     try {
-      const response = await fetch(`${csvUrl}${csvUrl.includes('?') ? '&' : '?'}_=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const rows = parseCSV(await response.text());
-      if (rows.length < 2) throw new Error('CSV 沒有活動資料');
+      const result = await loadPublishedRows(csvUrl);
+      const rows = result.rows || [];
+      if (!rows.length) throw new Error('讀到的資料完全沒有標題列');
+
+      // V3 修正：只有標題列代表「成功連線，但目前 0 筆已發布活動」，不是讀取失敗。
+      if (rows.length === 1) {
+        state.demoMode = false;
+        state.activities = [];
+        showNotice(`已成功連上正式資料（${result.method}），但「公開活動」目前沒有已發布活動。請確認後台活動狀態是否為「發布」。`);
+        return;
+      }
+
+      state.demoMode = false;
       state.activities = rowsToActivities(rows).filter((item) => item.id && item.title);
-      if (!state.activities.length) showNotice('資料表目前沒有已發布活動。');
+      if (!state.activities.length) {
+        showNotice(`已成功連上正式資料（${result.method}），但沒有找到可顯示的活動。請確認「公開活動」第一列欄位名稱沒有被改掉。`);
+      }
     } catch (error) {
-      console.error(error); state.demoMode = true; state.activities = demoActivities();
-      showNotice('正式活動資料暫時讀取失敗，現在顯示示範資料。請檢查 config.js 的 CSV 網址，以及 Google Sheets 是否只發布「公開活動」工作表。');
+      console.error('[Activity Hub] 正式資料讀取失敗：', error);
+      state.demoMode = true;
+      state.activities = demoActivities();
+      showNotice(`正式活動資料暫時讀取失敗，現在顯示示範資料。系統已同時嘗試 CSV 與 Google Visualization 備援讀取。錯誤：${friendlyDataError(error)}`);
     }
+  }
+
+  async function loadPublishedRows(csvUrl) {
+    const errors = [];
+    try {
+      const response = await fetch(`${csvUrl}${csvUrl.includes('?') ? '&' : '?'}_=${Date.now()}`, { cache: 'no-store', redirect: 'follow' });
+      if (!response.ok) throw new Error(`CSV HTTP ${response.status}`);
+      const text = await response.text();
+      const rows = parseCSV(text);
+      if (!rows.length) throw new Error('CSV 回傳空白內容');
+      return { rows, method: 'CSV' };
+    } catch (error) {
+      errors.push(error);
+      console.warn('[Activity Hub] CSV 直接讀取失敗，改用 Google Visualization：', error);
+    }
+
+    try {
+      const rows = await loadViaGoogleVisualization(csvUrl);
+      if (!rows.length) throw new Error('Google Visualization 回傳空白內容');
+      return { rows, method: 'Google Visualization 備援' };
+    } catch (error) {
+      errors.push(error);
+      console.warn('[Activity Hub] Google Visualization 備援也失敗：', error);
+    }
+
+    throw new Error(errors.map(error => error && error.message ? error.message : String(error)).join('；'));
+  }
+
+  function loadViaGoogleVisualization(sourceUrl) {
+    return new Promise((resolve, reject) => {
+      let url;
+      try { url = buildGvizUrl(sourceUrl); } catch (error) { reject(error); return; }
+      const callbackName = `__activityHubGviz_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      let settled = false;
+      const timer = setTimeout(() => finish(new Error('Google Visualization 讀取逾時')), 12000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[callbackName]; } catch (error) { window[callbackName] = undefined; }
+        script.remove();
+      }
+      function finish(error, rows) {
+        if (settled) return;
+        settled = true; cleanup();
+        if (error) reject(error); else resolve(rows);
+      }
+
+      window[callbackName] = (payload) => {
+        if (!payload || payload.status === 'error' || !payload.table) {
+          const detail = payload && payload.errors && payload.errors[0] ? payload.errors[0].detailed_message || payload.errors[0].message : '未知錯誤';
+          finish(new Error(`Google Visualization：${detail}`));
+          return;
+        }
+        const headers = (payload.table.cols || []).map(col => String(col.label || col.id || '').trim());
+        const dataRows = (payload.table.rows || []).map(row => (row.c || []).map(cell => {
+          if (!cell) return '';
+          if (cell.f !== undefined && cell.f !== null) return String(cell.f);
+          if (cell.v === undefined || cell.v === null) return '';
+          return String(cell.v);
+        }));
+        finish(null, [headers, ...dataRows]);
+      };
+
+      const separator = url.includes('?') ? '&' : '?';
+      script.src = `${url}${separator}headers=1&tqx=${encodeURIComponent(`responseHandler:${callbackName}`)}&_=${Date.now()}`;
+      script.async = true;
+      script.onerror = () => finish(new Error('Google Visualization script 載入失敗'));
+      document.head.appendChild(script);
+    });
+  }
+
+  function buildGvizUrl(sourceUrl) {
+    const url = new URL(sourceUrl, window.location.href);
+    const gid = url.searchParams.get('gid') || '0';
+    const published = url.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/(?:pub|gviz\/tq)/);
+    if (published) return `https://docs.google.com/spreadsheets/d/e/${published[1]}/gviz/tq?gid=${encodeURIComponent(gid)}`;
+    const normal = url.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if (normal) return `https://docs.google.com/spreadsheets/d/${normal[1]}/gviz/tq?gid=${encodeURIComponent(gid)}`;
+    throw new Error('無法從 config.js 的網址判斷 Google Sheets ID');
+  }
+
+  function friendlyDataError(error) {
+    const message = error && error.message ? error.message : String(error || '未知錯誤');
+    if (/Failed to fetch|NetworkError|CORS/i.test(message)) return '瀏覽器無法直接讀取 Google CSV，且備援連線也沒有成功。';
+    return message.slice(0, 220);
   }
 
   function rowsToActivities(rows) {
