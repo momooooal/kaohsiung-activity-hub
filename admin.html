@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小編後台｜高雄運動活動總入口</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-gateway-body">
+  <main class="admin-gateway">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">動</span>
+      <span><strong>高雄運動</strong><small>活動管理</small></span>
+    </a>
+
+    <section class="gateway-card">
+      <div class="gateway-badge">小編專用</div>
+      <h1>用你的 Google 帳號<br>進入活動管理後台</h1>
+      <p>只有已加入白名單的帳號可以使用。一般小編只能編輯自己科室的活動；總編與綜企科小編可以管理全部科室。</p>
+
+      <a id="openAdminBtn" class="button button-google" href="#" rel="noopener">
+        <span class="google-g" aria-hidden="true">G</span>
+        開啟 Google 小編後台
+      </a>
+
+      <div class="gateway-note">
+        <strong>這個頁面不會儲存密碼。</strong>
+        <span>登入與身分辨識由 Google Apps Script / Google 帳號處理。</span>
+      </div>
+    </section>
+
+    <a class="text-button gateway-back" href="index.html">← 回活動總入口</a>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    const button = document.getElementById('openAdminBtn');
+    const url = (window.ACTIVITY_HUB_CONFIG && window.ACTIVITY_HUB_CONFIG.ADMIN_WEBAPP_URL || '').trim();
+    if (url) {
+      button.href = url;
+      button.target = '_blank';
+    } else {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        alert('尚未設定 ADMIN_WEBAPP_URL。請依壓縮檔內 README 完成 Google Apps Script 部署後，再把網址貼到 config.js。');
+      });
+    }
+  </script>
+</body>
+</html>
